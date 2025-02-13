@@ -1,0 +1,74 @@
+Branch-1#show running-config Building
+configuration...
+Current configuration : 1702 bytes
+!version 15.1
+no service timestamps log datetimemsec no service
+timestamps debug datetimemsec no service password-
+encryption
+!hostname Branch-1
+!ipcef
+no ipv6 cef
+!licenseudipid CISCO1941/K9 sn FTX15240000
+license boot module c1900 technology-package securityk9
+!cryptoisakmp policy 1
+encraes 192 hash
+md5
+authentication pre-share group 5
+!
+cryptoisakmp key cisco address 60.1.1.1
+!cryptoipsec transform-set TS esp-aes 256 esp-sha-hmac
+!crypto map MyMap 10 ipsec-isakmp set peer
+60.1.1.1
+set transform-set TS match
+address MyAcl
+!spanning-tree mode pvst
+!interface Tunnel0
+ip address 10.0.1.1 255.255.255.252
+10
+mtu 1476
+tunnel source Serial0/0/0 tunnel
+destination 60.1.1.1
+!interface GigabitEthernet0/0
+ip address 192.168.10.1 255.255.255.0
+ipnat inside duplex
+auto speed auto
+!
+interface GigabitEthernet0/1
+ip address 192.168.20.1 255.255.255.0
+ipnat inside duplex
+auto speed auto
+!
+interface Serial0/0/0
+ip address 50.1.1.1 255.255.255.252
+ipnat outside crypto map
+MyMap
+!
+interface Serial0/0/1 noip
+address
+clock rate 2000000
+shutdown
+!
+interface Vlan1 noip
+address shutdown
+!
+routereigrp 100
+network 192.168.10.0
+network 192.168.20.0
+network 10.0.1.0 0.0.0.3
+!
+ipnat inside source list SRC-DST interface Serial0/0/0 overload ip classless
+ip route 0.0.0.0 0.0.0.0 Serial0/0/0
+11
+!ip flow-export version 9
+ip access-list extended MyAcl
+permitip 192.168.0.0 0.0.255.255 172.16.0.0 0.0.255.255
+ip access-list extended SRC-DST
+denyip 192.168.0.0 0.0.255.255 172.16.0.0 0.0.255.255
+permitip 192.168.0.0 0.0.255.255 any
+!
+!
+line con 0
+!line aux 0
+!
+linevty 0 4 login
+!End
