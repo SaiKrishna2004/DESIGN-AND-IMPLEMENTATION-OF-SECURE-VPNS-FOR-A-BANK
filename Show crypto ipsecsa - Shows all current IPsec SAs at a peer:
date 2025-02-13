@@ -1,0 +1,87 @@
+interface: Serial0/0/0
+Crypto map tag: MyMap, local addr 50.1.1.1
+local crypto endpt.: 50.1.1.1, remote crypto endpt.:60.1.1.1
+pathmtu 1500, ipmtu 1500, ipmtuidb Serial0/0/0 current outbound spi: 0x0(0)
+inboundespsas:
+inbound ah sas:
+inboundpcpsas:
+outboundespsas:
+13
+3.3 Router CLI Configuration Branch-2
+Router#show running-config Building
+configuration...
+Current configuration : 1719 bytes
+!
+version 15.1
+no service timestamps log datetimemsec no service
+timestamps debug datetimemsec no service password-
+encryption
+!
+hostname Router
+!ipcef
+no ipv6 cef
+!licenseudipid CISCO1941/K9 sn FTX152400000000
+license boot module c1900 technology-package securityk9
+!cryptoisakmp policy 1
+encraes 192 hash
+md5
+authentication pre-share group 5
+!
+cryptoisakmp key cisco address 50.1.1.1
+!
+cryptoipsec transform-set TS esp-aes 256 esp-sha-hmac
+!
+crypto map MyMap 10 ipsec-isakmp set peer
+50.1.1.1
+set transform-set TS match
+address MyAcl
+!
+spanning-tree mode pvst
+!
+14
+interface Tunnel0
+ip address 10.0.1.2 255.255.255.252
+mtu 1476
+tunnel source Serial0/0/1 tunnel
+destination 50.1.1.1
+!
+interface GigabitEthernet0/0
+ip address 172.16.10.1 255.255.255.0
+ipnat inside duplex
+auto speed auto
+interface GigabitEthernet0/1
+ip address 172.16.20.1 255.255.255.0
+ipnat inside duplex
+auto speed auto
+15
+!
+interface Serial0/0/0 noip
+address
+clock rate 2000000
+shutdown
+!
+interface Serial0/0/1
+ip address 60.1.1.1 255.255.255.252
+ipnat outside crypto
+map MyMap
+!interface Vlan1 noip
+address shutdown
+!routereigrp 100
+network 172.16.10.0 0.0.0.255
+network 172.16.20.0 0.0.0.255
+network 10.0.1.0 0.0.0.3
+!
+ipnat inside source list SRC-DST interface Serial0/0/1 overload ip classless
+ip route 0.0.0.0 0.0.0.0 Serial0/0/1
+!ip flow-export version 9
+!
+ip access-list extended MyAcl
+permitip 172.16.0.0 0.0.255.255 192.168.0.0 0.0.255.255
+ip access-list extended SRC-DST
+denyip 172.16.0.0 0.0.255.255 192.168.0.0 0.0.255.255
+permitip 172.16.0.0 0.0.255.255 any
+!
+line con 0
+!line aux 0
+!
+linevty 0 4 login
